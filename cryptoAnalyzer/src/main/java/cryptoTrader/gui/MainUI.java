@@ -28,19 +28,31 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import cryptoAnalyzer.utils.Result;
+import cryptoTrader.utils.UserSelections;
+//import cryptoTrader.tradingBroker.tradingBroker;
 import cryptoTrader.utils.DataVisualizationCreator;
+import cryptoTrader.utils.TradeResult;
+import cryptoTrader.processing.*;
+import cryptoTrader.tradingStrategies.TradingStrategy;
+import cryptoTrader.coins.*;
 
 public class MainUI extends JFrame implements ActionListener {
-	/**
-	 * 
-	 */
+	
+	/* Declare instance variables */
+	
 	private static final long serialVersionUID = 1L;
 
+	// instances for the different UI's used
 	private static MainUI instance;
+	
+	// declare JPanel objects that will hold table and histogram
 	private JPanel stats, chartPanel, tablePanel;
 
 	// Should be a reference to a separate object in actual implementation
 	private List<String> selectedList;
+//	private 
+	
 
 	private JTextArea selectedTickerList;
 //	private JTextArea tickerList;
@@ -53,7 +65,15 @@ public class MainUI extends JFrame implements ActionListener {
 	private String selectedStrategy = "";
 	private DefaultTableModel dtm;
 	private JTable table;
-
+	
+	private List<UserSelections> rowSelections;  // list that stores the lines within the input table
+	
+	private List<TradeResult> listOfTradeResults;
+	
+	//private tableData theTableData;
+	//private chartData theChartData;
+	
+	
 	public static MainUI getInstance() {
 		if (instance == null)
 			instance = new MainUI();
@@ -67,10 +87,10 @@ public class MainUI extends JFrame implements ActionListener {
 		super("Crypto Trading Tool");
 
 		// Set top bar
-
-
 		JPanel north = new JPanel();
-
+		
+		listOfTradeResults = new ArrayList<TradeResult>();
+		
 //		north.add(strategyList);
 
 		// Set bottom bar
@@ -108,7 +128,6 @@ public class MainUI extends JFrame implements ActionListener {
 		trade.addActionListener(this);
 
 
-
 		JPanel south = new JPanel();
 		
 		south.add(trade);
@@ -120,11 +139,11 @@ public class MainUI extends JFrame implements ActionListener {
 		scrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Trading Client Actions",
 				TitledBorder.CENTER, TitledBorder.TOP));
 		Vector<String> strategyNames = new Vector<String>();
-		strategyNames.add("None");
 		strategyNames.add("Strategy-A");
 		strategyNames.add("Strategy-B");
 		strategyNames.add("Strategy-C");
 		strategyNames.add("Strategy-D");
+		strategyNames.add("Strategy-E");
 		TableColumn strategyColumn = table.getColumnModel().getColumn(2);
 		JComboBox comboBox = new JComboBox(strategyNames);
 		strategyColumn.setCellEditor(new DefaultCellEditor(comboBox));
@@ -166,25 +185,28 @@ public class MainUI extends JFrame implements ActionListener {
 		getContentPane().add(south, BorderLayout.SOUTH);
 //		getContentPane().add(west, BorderLayout.WEST);
 	}
-
+		
 	public void updateStats(JComponent component) {
 		stats.add(component);
 		stats.revalidate();
 	}
 
 	public static void main(String[] args) {
+		
 		JFrame frame = MainUI.getInstance();
 		frame.setSize(900, 600);
 		frame.pack();
 		frame.setVisible(true);
+		
 	}
-
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("refresh".equals(command)) {
+			
 			for (int count = 0; count < dtm.getRowCount(); count++){
-					Object traderObject = dtm.getValueAt(count, 0);
+					Object traderObject = dtm.getValueAt(count, 0); //maybe move these to be instance variables
 					if (traderObject == null) {
 						JOptionPane.showMessageDialog(this, "please fill in Trader name on line " + (count + 1) );
 						return;
@@ -201,12 +223,54 @@ public class MainUI extends JFrame implements ActionListener {
 						JOptionPane.showMessageDialog(this, "please fill in strategy name on line " + (count + 1) );
 						return;
 					}
-					String strategyName = strategyObject.toString();
-					System.out.println(traderName + " " + Arrays.toString(coinNames) + " " + strategyName);
+										
+					//String strategyName = strategyObject.toString();
+					//System.out.println(traderName + " " + Arrays.toString(coinNames) + " " + strategyName);
 	        }
+			
+			// all rows have been filled in correctly so we can fill in rowSelections array 
+			rowSelections = new ArrayList<UserSelections>();
+			//could add a list of results for the tradeResults???
+			
+			CryptoCoins coinsList = CryptoCoins.getInstance();
+			
+			for (int count = 0; count < dtm.getRowCount(); count++) {
+				UserSelections newRow = new UserSelections(dtm.getValueAt(count, 0).toString(), dtm.getValueAt(count, 1).toString().replaceAll(" ", "").split(","), dtm.getValueAt(count, 2).toString());
+				rowSelections.add(newRow);
+				
+				// adds coins to the coinList
+				coinsList.putCoin(dtm.getValueAt(count, 1).toString().replaceAll(" ", "").split(","));
+				
+			}
+			
+			coinsList.printCoinsEntered();
+			coinsList.getPrices();
+			coinsList.printCoinPrices();
+			
+			
+			for (int i = 0; i < rowSelections.size(); i++) {
+				
+				rowSelections.get(i).setCoinsPriceList(coinsList.getPriceList(rowSelections.get(i).getCoinsList()));
+				
+				// user factory method in here
+				Factory factory = new Factory();
+				TradingStrategy strategy = factory.create(rowSelections.get(i));
+				
+				TradeResult result = strategy.performTrade();
+				
+				listOfTradeResults.add(result);
+				
+				System.out.println(result.getTraderName() + " " + result.getStrategy() + " " + result.getCoinTraded() + " " + result.getAction() + " " + result.getQuantity() + " " + 
+				result.getPrice() + " " + result.getDate());
+				
+			}
+			
+			//printRowSelections();	// remove later
+			
 			stats.removeAll();
+			
 			DataVisualizationCreator creator = new DataVisualizationCreator();
-			creator.createCharts();
+			//creator.createCharts();
 		} else if ("addTableRow".equals(command)) {
 			dtm.addRow(new String[3]);
 		} else if ("remTableRow".equals(command)) {
@@ -215,5 +279,12 @@ public class MainUI extends JFrame implements ActionListener {
 				dtm.removeRow(selectedRow);
 		}
 	}
+	
+	public void printRowSelections() {
+		
+		for(int i = 0; i < rowSelections.size(); i++)
+			System.out.println(rowSelections.get(i).getTradingBroker() + " " + Arrays.toString(rowSelections.get(i).getCoinsList()) + " " +  Arrays.toString(rowSelections.get(i).getCoinsPriceList()) + " " + rowSelections.get(i).getStrategy());
+	}
+	
 
 }
