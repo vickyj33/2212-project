@@ -4,11 +4,23 @@ import java.util.*;
 
 import cryptoTrader.utils.DataFetcher;
 
+/**
+ * Class that stores the cryptocoins that the user is allowed to use as well as the ones that have been inputted
+ * Used as a Facade to get the prices of entered coins using the DataFetcher from the CoinGecko API
+ * 
+ * @author Ian Guenther Green
+ * @author Vicky Jiang
+ *
+ */
+
 public class CryptoCoins {
 	Hashtable<String, String> cryptoIdNameDict; 
 	Hashtable<String, Double> cryptoCoinsList;
 	private static CryptoCoins instance = null;
 	
+	/*
+	 * class constructor for the singleton class CryptoCoins
+	 */
 	private CryptoCoins() {
 		cryptoIdNameDict = new Hashtable<String, String>();
 		
@@ -31,22 +43,41 @@ public class CryptoCoins {
 		cryptoCoinsList = new Hashtable<String, Double>();
 	}
 	
+	/**
+	 * getter class that returns the one instance of the CryptoCoins class
+	 * @return instance of CryptoCoins class
+	 */
 	public static CryptoCoins getInstance() {
 		if(instance == null)
 			instance = new CryptoCoins();
 		return instance;
 	}
 	
-	
-	public void putCoin(String[] coins) {
+	/**
+	 * function that adds valid cryto coins in coins to cryptoCoinsList
+	 * dictionary is used so a coin will only ever have one occurrence
+	 * @param coins - String array of cryptoCoins
+	 * @return true if coins successfully put into dictionary, false if not
+	 */
+	public boolean putCoin(String[] coins) {
 		for (int i = 0; i < coins.length; i++) {
+			if(!cryptoIdNameDict.containsKey(coins[i])) {
+				System.out.println("invalid coin " + coins[i]);
+				return false;					
+			}
+				
 			cryptoCoinsList.put(coins[i], 0d);
-			//System.out.print(coins[i]);
 			
 		}
 		
+		return true;
+		
 	}
 	
+	/**
+	 * function that uses DataFetcher to get prices for the coins in CryptoCoinsList
+	 * utilizes facade design patter to get prices for coins using CryptoCoins rather than directly from MainUI client
+	 */
 	public void getPrices() {
 		DataFetcher fetcher = new DataFetcher();
 		
@@ -56,9 +87,7 @@ public class CryptoCoins {
 		
 		for (int i = 0; i < coinNames.length; i++)
 			coinNames[i] = 	cryptoIdNameDict.get(key.nextElement());;
-			
-		// maybe add in error checking for if correct coins are entered
-			
+						
 		double[] prices = fetcher.getPricesForCoins(coinNames);
 		key = cryptoCoinsList.keys();
 		
@@ -67,6 +96,11 @@ public class CryptoCoins {
 		
 	}
 	
+	/**
+	 * receives a String array of coin names and returns a double array with the prices of those coins
+	 * @param coinNames - String array with the prices of needed coins
+	 * @return coinsPriceList - double array with coins prices
+	 */
 	public double[] getPriceList(String[] coinNames) {
 		double[] coinPriceList = new double[coinNames.length];
 		
@@ -77,6 +111,9 @@ public class CryptoCoins {
 		
 	}
 	
+	/**
+	 * prints coins that have been entered into system (stored in cryptoCoinsList)
+	 */
 	public void printCoinsEntered() {
 		for (Enumeration<String> i = cryptoCoinsList.keys(); i.hasMoreElements();) {
             System.out.println("Value in Dictionary : " + i.nextElement());
@@ -84,6 +121,9 @@ public class CryptoCoins {
 		
 	}
 	
+	/**
+	 * prints the coins and their prices for the coins that have been entered into system (stored in cryptoCoinsList)
+	 */
 	public void printCoinPrices() {
 		Enumeration<String> key = cryptoCoinsList.keys();
 		Enumeration<Double> element = cryptoCoinsList.elements();
@@ -93,6 +133,5 @@ public class CryptoCoins {
 		}
 		
 	}
-	
 	
 }

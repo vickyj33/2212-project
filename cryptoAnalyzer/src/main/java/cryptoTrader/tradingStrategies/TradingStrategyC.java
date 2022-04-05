@@ -1,35 +1,39 @@
 package cryptoTrader.tradingStrategies;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import cryptoTrader.processing.CheckCoinsListFacade;
 import cryptoTrader.utils.TradeResult;
-import cryptoTrader.utils.UserSelections;
+import cryptoTrader.utils.TradingBroker;
 
 import java.util.Date;  
 import java.text.SimpleDateFormat; 
+
+/**
+ * defines TradingStrategyC
+ * @author Ian Guenther Green
+ */
 
 public class TradingStrategyC implements TradingStrategy{
 	
 	private String strategyName = "Strategy-C";
 	private String tradingBroker;
-	private ArrayList<String> coinsList;
+	private ArrayList<String> coinsList = new ArrayList<>();
 	private double[] coinsPriceList;
-	private List<String> requiredCoins;
+	private ArrayList<String> requiredCoins = new ArrayList<>();
 			
 	Date date;
 	SimpleDateFormat dateFormat;
 	
-	public TradingStrategyC(UserSelections selection) {
-		this.tradingBroker = selection.getTradingBroker();
-		coinsList = new ArrayList<>();
-		this.coinsPriceList = selection.getCoinsPriceList();
-		requiredCoins = new ArrayList<>();
-		
-		
-		for(String coin:selection.getCoinsList()) 
-			coinsList.add(coin);
+	/**
+	 * Constructor
+	 * Assigns instance variables and required coins
+	 * @param broker
+	 */
+	public TradingStrategyC(TradingBroker broker) {
+		this.tradingBroker = broker.getTradingBrokerName();
+		this.coinsList = broker.getCoinsList();
+		this.coinsPriceList = broker.getCoinsPriceList();
 		
 		requiredCoins.add("FTM");
 		requiredCoins.add("ONE");
@@ -39,6 +43,10 @@ public class TradingStrategyC implements TradingStrategy{
 		
 	}
 	
+	/**
+	 * method called to perform trade with specified strategy
+	 * @return TradeResult object containing trades made
+	 */
 	@Override
 	public TradeResult performTrade() {
 		
@@ -50,8 +58,9 @@ public class TradingStrategyC implements TradingStrategy{
 		
 		float quantity;
 		
+		// if required coins are not in coins entered, trade fails
 		if (!checker.checkCoinsList()) {
-			return result = new TradeResult(tradingBroker, strategyName, "Fail", "", 0f, 0d, dateFormat.format(date));
+			return result = new TradeResult(tradingBroker, strategyName, "Fail", "Fail", 0f, 0d, dateFormat.format(date));
 		}
 
 		if((coinsPriceList[coinsList.indexOf("FTM")] > 2) && (coinsPriceList[coinsList.indexOf("ONE")] <= 1)) {

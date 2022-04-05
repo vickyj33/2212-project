@@ -12,6 +12,8 @@ import cryptoTrader.login.LoginSubject;
  *
  * @author Hala Elewa
  * @author Ian Guenther Green
+ * @author Vicky Jiang
+ * @author Ali Mohamed
  */
 public class MainApp {
 

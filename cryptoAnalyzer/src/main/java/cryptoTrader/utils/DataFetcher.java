@@ -14,8 +14,26 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+/**
+ * class that fetches prices for cryptocoins from the CoinGecko API
+ * adapted from code given in the cs2212 class for the trader project
+ * 
+ * @author CS2212
+ * @author Ian Guenther Green
+ * @author Vicky Jiang
+ *
+ */
+
 public class DataFetcher {
 
+	/**
+	 * Method to get all the information for a cryptocoin from the coinGecko API at a specific date
+	 * 
+	 * @param id of the coin to get data for
+	 * @param date to get data from
+	 * @return JsonObject with data about coin
+	 */
+	
 	private JsonObject getDataForCrypto(String id, String date) {
 
 		String urlString = String.format(
@@ -44,9 +62,17 @@ public class DataFetcher {
 		return null;
 	}
 	
+	/**
+	 * Method to get all the prices for multiple cryptocoins from the coinGecko API at the current date in cad
+	 * 
+	 * @param ids[] String array containing ids to get data for
+	 * @return JsonObject with data about coins
+	 */
+	
 	private JsonObject getDataForMultipleCryptos(String[] ids) {
 		
 		// creates urlString using all crypto ids for single https request
+		// single call as that is what was specified in the project
 		String urlString = "https://api.coingecko.com/api/v3/simple/price?ids=";
 		
 		for (int i = 0; i < ids.length; i++) {
@@ -56,7 +82,7 @@ public class DataFetcher {
 
 		urlString = urlString.concat("&vs_currencies=cad");
 		
-		System.out.println(urlString);
+		//System.out.println(urlString);
 		
 		try {
 			URL url = new URL(urlString);
@@ -83,6 +109,12 @@ public class DataFetcher {
 		return null;
 	}
 	
+	/**
+	 * gets the prices for multiple coins and returns them in a double array
+	 * index of the prices match the indexes of the names of the respective coin
+	 * @param ids String array containing ids to get prices for
+	 * @return double array containing the prices for the input coins 
+	 */
 	public double[] getPricesForCoins(String ids[]) {
 		double[] prices = new double[ids.length];
 		
@@ -93,7 +125,7 @@ public class DataFetcher {
 				JsonObject coin = jsonObject.get(ids[i]).getAsJsonObject();
 				prices[i] = coin.get("cad").getAsDouble();
 				
-				System.out.println(ids[i] + ": " + prices[i]);	//remove later
+				//System.out.println(ids[i] + ": " + prices[i]);
 				
 			}
 			
@@ -103,6 +135,12 @@ public class DataFetcher {
 		
 	}
 	
+	/**
+	 * gets the price for a coin
+	 * @param id of coin
+	 * @param date to get price from
+	 * @return price of coin in double variable
+	 */
 	public double getPriceForCoin(String id, String date) {
 		double price = 0.0;
 		
@@ -116,50 +154,4 @@ public class DataFetcher {
 		return price;
 	}
 	
-	public double getMarketCapForCoin(String id, String date) {
-		double marketCap = 0.0;
-		
-		JsonObject jsonObject = getDataForCrypto(id, date);
-		if (jsonObject != null) {
-			JsonObject marketData = jsonObject.get("market_data").getAsJsonObject();
-			JsonObject currentPrice = marketData.get("market_cap").getAsJsonObject();
-			marketCap = currentPrice.get("cad").getAsDouble();
-		}
-		
-		return marketCap;
-	}
-	
-	public double getVolumeForCoin(String id, String date) {
-		double volume = 0.0;
-		
-		JsonObject jsonObject = getDataForCrypto(id, date);
-		if (jsonObject != null) {
-			JsonObject marketData = jsonObject.get("market_data").getAsJsonObject();
-			JsonObject currentPrice = marketData.get("total_volume").getAsJsonObject();
-			volume = currentPrice.get("cad").getAsDouble();
-		}
-		
-		return volume;
-	}
-	
-	public static void main(String[] args) {
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");		
-		LocalDateTime now = LocalDateTime.now();
-		
-		DataFetcher fetcher = new DataFetcher();
-		double price = fetcher.getPriceForCoin("bitcoin", dtf.format(now));	//dd-mm-yyyy
-		double marketCap = fetcher.getMarketCapForCoin("bitcoin", dtf.format(now));
-		double volume = fetcher.getVolumeForCoin("bitcoin", dtf.format(now));
-		
-		String[] coinNames = new String[] {"bitcoin", "tether", "ethereum", "cardano", "dogecoin", "usd-coin", "tether", "avalanche-2"};
-		double[] prices = fetcher.getPricesForCoins(coinNames);
-		
-		for(int i = 0; i < prices.length; i++)
-			System.out.println(coinNames[i] + prices[i]);
-		/*
-		System.out.println("Bitcoin=>\tPrice: " + price + 
-								"\n\t\tMarket Cap: " + marketCap + 
-								"\n\t\tVolume: "+volume);*/
-		
-	}
 }
