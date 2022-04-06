@@ -55,6 +55,7 @@ public class LoginServer extends LoginSubject implements ActionListener, initiat
 	 * @return instance of this class
 	 */
 	public static LoginServer getInstance() {
+		// if we don't have an instance, initiate one
 		if (instance == null)
 			instance = new LoginServer();
 		
@@ -288,7 +289,7 @@ public class LoginServer extends LoginSubject implements ActionListener, initiat
 			if (showPassword.isSelected()) {
                 passField.setEchoChar((char) 0);
             } else { // show password as bullet points
-                passField.setEchoChar('•');
+                passField.setEchoChar('Â•');
             }
 		}
 	}
