@@ -315,7 +315,7 @@ public class LoginServer extends LoginSubject implements ActionListener, initiat
 	public void startSession() {
 		
 		// Unset the look and feel for the program
-        try {
+        	try {
 			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
