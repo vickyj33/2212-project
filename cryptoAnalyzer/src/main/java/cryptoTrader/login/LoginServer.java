@@ -287,10 +287,10 @@ public class LoginServer extends LoginSubject implements ActionListener, initiat
 		else if (e.getSource() == showPassword) {
 			// show password as chars
 			if (showPassword.isSelected()) {
-                passField.setEchoChar((char) 0);
-            } else { // show password as bullet points
-                passField.setEchoChar('');
-            }
+                		passField.setEchoChar((char) 0);
+            		} else { // show password as bullet points
+               			 passField.setEchoChar('');
+            		}
 		}
 	}
 
